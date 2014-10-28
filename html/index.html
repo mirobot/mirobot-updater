@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mirobot Updater</title>
+    <style>
+    body {
+      background-color: #FFF;
+      font-family: Lucida Sans Unicode, Lucida Grande, sans-serif;
+      font-size: 100%;
+    }
+    #header .name{
+      margin-top:35px;
+      float:right;
+    }
+    .bad{
+      color: #F00;
+    }
+    .good{
+      color: #0F0;
+    }
+    #message{
+      background-color:#EEE;
+      color:#666;
+      font-weight: bold;
+      font-size:80%;
+      padding:3px;
+    }
+    #versions{
+      width:100%;
+    }
+  </style>
+  </head>
+  <body>
+    <div id="header">
+    <img src="logo.png" />
+    <span class="name">Update Tool</span>
+    </div>
+    <p id="message"></p>
+    <p>Mirobot IP address: <input id="ip" type="text" value="192.168.1.218" /> <button class="connect" disabled="disabled">Connect</button></p>
+    <table id="versions">
+    <tr><td>Arduino Version:</td><td id="arduinoVersion"> </td><td><button class="upgradeArduino" disabled="true">Upgrade</button></td></tr>
+    <tr><td>UI Version:</td><td id="uiVersion"> </td><td><button class="upgradeUI" disabled="true">Upgrade</button></td></tr>
+    </table>
+  </body>
+  <script>
+    var ipc = require('ipc');
+    var versions = {};
+    
+    var updateVersions = function(){
+      document.getElementById('arduinoVersion').innerHTML = (versions.arduino ? versions.arduino : 'Unknown');
+      document.getElementById('uiVersion').innerHTML = (versions.ui ? versions.ui : 'Unknown');
+      if(versions.arduino && versions.arduinoLatest){
+        document.getElementById('arduinoVersion').className = (versions.arduino >= versions.arduinoLatest ? 'good' : 'bad');
+        document.querySelector('button.upgradeArduino').disabled = (versions.arduino >= versions.arduinoLatest);
+      }
+      if(versions.ui && versions.uiLatest){
+        document.getElementById('uiVersion').className = (versions.ui >= versions.uiLatest ? 'good' : 'bad');
+        document.querySelector('button.upgradeUI').disabled = (versions.ui >= versions.uiLatest);
+      }
+    }
+    
+    var setMessage = function(msg){
+      document.getElementById('message').innerHTML = msg;
+    }
+    
+    ipc.on('versions', function(v) {
+      versions = JSON.parse(v);
+      updateVersions();
+    });
+    
+    ipc.on('ready', function() {
+      document.querySelector('button.connect').disabled = false;
+      setMessage("Ready");
+    });
+    
+    ipc.on('connected', function() {
+      document.querySelector('button.connect').innerHTML = 'Connected';
+      setMessage("Connected to Mirobot");
+    });
+    
+    ipc.on('status', function(msg) {
+      msg = JSON.parse(msg);
+      setMessage(msg.msg);
+    });
+    
+    ipc.on('upgradeArduino', function(msg){
+      msg = JSON.parse(msg);
+      if(msg.state === 'starting'){
+        document.querySelector('button.upgradeArduino').disabled = true;
+        setMessage('Upgrading Arduino');
+      }else if(msg.state === 'progress'){
+        document.querySelector('button.upgradeArduino').disabled = true;
+        setMessage('Upgrading Arduino: ' + msg.amount + '%');
+      }else if(msg.state === 'success'){
+        setMessage('Arduino successfully upgraded');
+      }else if(msg.state === 'error'){
+        document.querySelector('button.upgradeArduino').disabled = false;
+        setMessage('Error upgrading Arduino');
+      }
+    });
+    
+    document.querySelector('button.connect').addEventListener('click', function(){
+      setMessage("Connecting to Mirobot");
+      ipc.send('connect', document.getElementById('ip').value);
+    });
+    
+    document.querySelector('button.upgradeArduino').addEventListener('click', function(){
+      ipc.send('upgradeArduino');
+    });
+    
+    document.querySelector('button.upgradeUI').addEventListener('click', function(){
+      ipc.send('upgradeUI');
+    });
+    
+    updateVersions();
+  </script>
+</html>

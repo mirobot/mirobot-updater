@@ -1,0 +1,5 @@
+*.hex
+node_modules/*
+*.graffle
+*.DS_Store
+

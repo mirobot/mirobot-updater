@@ -1,0 +1,30 @@
+{
+  "name": "mirobot-updater",
+  "version": "1.0.0",
+  "description": "A utility that can update the Mirobot firmware",
+  "main": "lib/main.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:bjpirt/mirobot-updater.git"
+  },
+  "keywords": [
+    "Mirobot",
+    "Arduino",
+    "Robot"
+  ],
+  "author": "Ben Pirt",
+  "license": "GPL",
+  "bugs": {
+    "url": "https://github.com/bjpirt/mirobot-updater/issues"
+  },
+  "homepage": "https://github.com/bjpirt/mirobot-updater",
+  "dependencies": {
+    "mirobot": "0.0.2",
+    "request": ">=2.4.6"
+  }
+}
