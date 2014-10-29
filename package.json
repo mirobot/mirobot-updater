@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/bjpirt/mirobot-updater",
   "dependencies": {
-    "mirobot": "0.0.2",
+    "mirobot": "0.0.3",
     "request": ">=2.4.6"
   }
 }
