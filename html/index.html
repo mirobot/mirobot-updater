@@ -36,7 +36,7 @@
     <span class="name">Update Tool</span>
     </div>
     <p id="message"></p>
-    <p>Mirobot IP address: <input id="ip" type="text" value="192.168.1.218" /> <button class="connect" disabled="disabled">Connect</button></p>
+    <p>Mirobot IP address: <input id="ip" type="text" value="10.10.100.254" /> <button class="connect" disabled="disabled">Connect</button></p>
     <table id="versions">
     <tr><td>Arduino Version:</td><td id="arduinoVersion"> </td><td><button class="upgradeArduino" disabled="true">Upgrade</button></td></tr>
     <tr><td>UI Version:</td><td id="uiVersion"> </td><td><button class="upgradeUI" disabled="true">Upgrade</button></td></tr>
@@ -54,8 +54,12 @@
         document.querySelector('button.upgradeArduino').disabled = (versions.arduino >= versions.arduinoLatest);
       }
       if(versions.ui && versions.uiLatest){
-        document.getElementById('uiVersion').className = (versions.ui >= versions.uiLatest ? 'good' : 'bad');
-        document.querySelector('button.upgradeUI').disabled = (versions.ui >= versions.uiLatest);
+        if(versions.ui === 'unknown'){
+          document.querySelector('button.upgradeUI').disabled = false;
+        }else{
+          document.getElementById('uiVersion').className = (versions.ui >= versions.uiLatest ? 'good' : 'bad');
+          document.querySelector('button.upgradeUI').disabled = (versions.ui >= versions.uiLatest);
+        }
       }
     }
     
@@ -89,13 +93,17 @@
         document.querySelector('button.upgradeArduino').disabled = true;
         setMessage('Upgrading Arduino');
       }else if(msg.state === 'progress'){
-        document.querySelector('button.upgradeArduino').disabled = true;
         setMessage('Upgrading Arduino: ' + msg.amount + '%');
       }else if(msg.state === 'success'){
         setMessage('Arduino successfully upgraded');
+      }else if(msg.state === 'resetbutton'){
+        setMessage('Press the reset button now');
       }else if(msg.state === 'error'){
         document.querySelector('button.upgradeArduino').disabled = false;
         setMessage('Error upgrading Arduino');
+      }else if(msg.state === 'connecterror'){
+        document.querySelector('button.upgradeArduino').disabled = false;
+        setMessage('Error connecting to Arduino');
       }
     });
     
@@ -105,7 +113,9 @@
     });
     
     document.querySelector('button.upgradeArduino').addEventListener('click', function(){
-      ipc.send('upgradeArduino');
+      if(window.confirm("WARNING: Upgrading the arduino over WiFi carries the risk of breaking Mirobot. You may need to buy a USB to Serial converter if it does not work. Press OK to upgrade the firmware or cancel to abort")){
+        ipc.send('upgradeArduino');
+      }
     });
     
     document.querySelector('button.upgradeUI').addEventListener('click', function(){
