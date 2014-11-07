@@ -2,4 +2,7 @@
 node_modules/*
 *.graffle
 *.DS_Store
+app/node_modules/*
+build*
+cache*
 

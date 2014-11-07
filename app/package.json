@@ -22,5 +22,9 @@
   "bugs": {
     "url": "https://github.com/bjpirt/mirobot-updater/issues"
   },
-  "homepage": "https://github.com/bjpirt/mirobot-updater"
+  "homepage": "https://github.com/bjpirt/mirobot-updater",
+  "dependencies": {
+    "mirobot": "0.0.3",
+    "request": ">=2.4.6"
+  }
 }
