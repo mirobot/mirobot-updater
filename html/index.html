@@ -38,8 +38,8 @@
     <p id="message"></p>
     <p>Mirobot IP address: <input id="ip" type="text" value="10.10.100.254" /> <button class="connect" disabled="disabled">Connect</button></p>
     <table id="versions">
-    <tr><td>Arduino Version:</td><td id="arduinoVersion"> </td><td><button class="upgradeArduino" disabled="true">Upgrade</button></td></tr>
-    <tr><td>UI Version:</td><td id="uiVersion"> </td><td><button class="upgradeUI" disabled="true">Upgrade</button></td></tr>
+    <tr><td>Arduino Version:</td><td id="arduinoVersion"> </td><td><button class="updateArduino" disabled="true">Update</button></td></tr>
+    <tr><td>UI Version:</td><td id="uiVersion"> </td><td><button class="updateUI" disabled="true">Update</button></td></tr>
     </table>
   </body>
   <script>
@@ -51,14 +51,14 @@
       document.getElementById('uiVersion').innerHTML = (versions.ui ? versions.ui : 'Unknown');
       if(versions.arduino && versions.arduinoLatest){
         document.getElementById('arduinoVersion').className = (versions.arduino >= versions.arduinoLatest ? 'good' : 'bad');
-        document.querySelector('button.upgradeArduino').disabled = (versions.arduino >= versions.arduinoLatest);
+        document.querySelector('button.updateArduino').disabled = (versions.arduino >= versions.arduinoLatest);
       }
       if(versions.ui && versions.uiLatest){
         if(versions.ui === 'unknown'){
-          document.querySelector('button.upgradeUI').disabled = false;
+          document.querySelector('button.updateUI').disabled = false;
         }else{
           document.getElementById('uiVersion').className = (versions.ui >= versions.uiLatest ? 'good' : 'bad');
-          document.querySelector('button.upgradeUI').disabled = (versions.ui >= versions.uiLatest);
+          document.querySelector('button.updateUI').disabled = (versions.ui >= versions.uiLatest);
         }
       }
     }
@@ -87,22 +87,22 @@
       setMessage(msg.msg);
     });
     
-    ipc.on('upgradeArduino', function(msg){
+    ipc.on('updateArduino', function(msg){
       msg = JSON.parse(msg);
       if(msg.state === 'starting'){
-        document.querySelector('button.upgradeArduino').disabled = true;
-        setMessage('Upgrading Arduino');
+        document.querySelector('button.updateArduino').disabled = true;
+        setMessage('Updating Arduino');
       }else if(msg.state === 'progress'){
-        setMessage('Upgrading Arduino: ' + msg.amount + '%');
+        setMessage('Updating Arduino: ' + msg.amount + '%');
       }else if(msg.state === 'success'){
-        setMessage('Arduino successfully upgraded');
+        setMessage('Arduino successfully updated');
       }else if(msg.state === 'resetbutton'){
         setMessage('Press the reset button now');
       }else if(msg.state === 'error'){
-        document.querySelector('button.upgradeArduino').disabled = false;
-        setMessage('Error upgrading Arduino');
+        document.querySelector('button.updateArduino').disabled = false;
+        setMessage('Error updating Arduino');
       }else if(msg.state === 'connecterror'){
-        document.querySelector('button.upgradeArduino').disabled = false;
+        document.querySelector('button.updateArduino').disabled = false;
         setMessage('Error connecting to Arduino');
       }
     });
@@ -112,14 +112,14 @@
       ipc.send('connect', document.getElementById('ip').value);
     });
     
-    document.querySelector('button.upgradeArduino').addEventListener('click', function(){
-      if(window.confirm("WARNING: Upgrading the arduino over WiFi carries the risk of breaking Mirobot. You may need to buy a USB to Serial converter if it does not work. Press OK to upgrade the firmware or cancel to abort")){
-        ipc.send('upgradeArduino');
+    document.querySelector('button.updateArduino').addEventListener('click', function(){
+      if(window.confirm("WARNING: Updating the arduino over WiFi carries the risk of breaking Mirobot. You may need to buy a USB to Serial converter if it does not work. Press OK to update the firmware or cancel to abort")){
+        ipc.send('updateArduino');
       }
     });
     
-    document.querySelector('button.upgradeUI').addEventListener('click', function(){
-      ipc.send('upgradeUI');
+    document.querySelector('button.updateUI').addEventListener('click', function(){
+      ipc.send('updateUI');
     });
     
     updateVersions();
