@@ -4,12 +4,13 @@ var request = require('request');
 var url = require('url');
 var os = require('os');
 var fs = require('fs');
+var path = require('path');
 
 var GithubVersion = function(repo, file){
   EventEmitter.call(this);
   this.repo = repo;
   this.file = file;
-  this.tmpDir = os.tmpDir() + 'mirobot-updater';
+  this.tmpDir = path.join(os.tmpDir(), 'mirobot-updater');
 }
 
 util.inherits(GithubVersion, EventEmitter);
@@ -46,7 +47,7 @@ GithubVersion.prototype.storeLatestFile = function(){
   var self = this;
   fs.stat(self.tmpDir, function(err, dir){
     if(!dir){
-      fs.mkdir(self.tmpDir);
+      fs.mkdirSync(self.tmpDir);
       self.storeLatestFile();
       return;
     }
