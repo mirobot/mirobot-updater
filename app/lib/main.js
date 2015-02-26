@@ -105,6 +105,10 @@ app.on('ready', function() {
     sendMsg('status', {msg: status});
   }
   
+  sendPrerelease = function(state){
+    sendMsg('prerelease', {state: state});
+  }
+
   sendReady = function(type){
     ready[type] = true;
     if(ready.ui && ready.arduino){
@@ -125,6 +129,7 @@ app.on('ready', function() {
     var usePrereleases = false;
     var togglePrerelease = function(){
       usePrereleases = !usePrereleases;
+      sendPrerelease(usePrereleases);
       initVersions();
     }
 
@@ -157,7 +162,7 @@ app.on('ready', function() {
           {label: 'Hide Others', accelerator: 'Command+Shift+H', selector: 'hideOtherApplications:'},
           {label: 'Show All', selector: 'unhideAllApplications:'},
           {type: 'separator'},
-          {label: 'Use prereleases', accelerator: 'Command+R', type: 'checkbox', click: function() { togglePrerelease(); }},
+          {label: 'Use prereleases', accelerator: 'Command+Shift+R', type: 'checkbox', click: function() { togglePrerelease(); }},
           {type: 'separator'},
           {label: 'Quit', accelerator: 'Command+Q', click: function() { app.quit(); }},
         ]

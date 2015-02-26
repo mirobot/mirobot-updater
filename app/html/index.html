@@ -12,6 +12,14 @@
       margin-top:35px;
       float:right;
     }
+    #header .prerelease{
+      position:absolute;
+      top:5px;
+      right:5px;
+      font-size:80%;
+      color:#AAA;
+      visibility:hidden;
+    }
     .bad{
       color: #F00;
     }
@@ -33,6 +41,7 @@
   <body>
     <div id="header">
     <img src="logo.png" />
+    <span class="prerelease">Using prereleases</span>
     <span class="name">Update Tool</span>
     </div>
     <p id="message"></p>
@@ -87,6 +96,15 @@
       setMessage(msg.msg);
     });
     
+    ipc.on('prerelease', function(msg) {
+      msg = JSON.parse(msg);
+      if(msg.state){
+        document.querySelector('#header .prerelease').style.visibility = 'visible';
+      }else{
+        document.querySelector('#header .prerelease').style.visibility = 'hidden';
+      }
+    });
+
     ipc.on('updateArduino', function(msg){
       msg = JSON.parse(msg);
       if(msg.state === 'starting'){
