@@ -15,8 +15,9 @@ var GithubVersion = function(repo, file){
 
 util.inherits(GithubVersion, EventEmitter);
 
-GithubVersion.prototype.init = function(){
+GithubVersion.prototype.init = function(usePrereleases){
   var self = this;
+  self.usePrereleases = usePrereleases;
   self.fetchLatestRelease(function(){
     self.fetchLatestFile(function(){
       self.emit('ready');
@@ -32,11 +33,21 @@ GithubVersion.prototype.fetchLatestRelease = function(cb){
   }
   request(options, function(error, response, body) {
     if(!error && response.statusCode === 200){
-      self.latest = JSON.parse(body)[0];
-      self.version = self.latest.tag_name;
-      cb()
+      var res = JSON.parse(body);
+      for(var i=0; i< res.length; i++){
+        if(self.usePrereleases || !res[i].prerelease){
+          self.latest = JSON.parse(body)[i];
+          self.version = self.latest.tag_name;
+          cb();
+          break;
+        }
+      }
     }else{
-      self.emit('error', {msg: "Error fetching latest versions"});
+      if(!error && response.headers['x-ratelimit-remaining'] === '0'){
+        self.emit('error', {msg: "Exceeded GitHub rate limit. Try again in " + ((response.headers['x-ratelimit-reset'] - (new Date()).getTime()/1000)/60).toFixed(0) + ' minutes'});
+      }else{
+        self.emit('error', {msg: "Error fetching latest versions"});
+      }
     }
   }).on('error', function(err){
     self.emit('error', {msg: "Error fetching latest versions"});
@@ -83,7 +94,6 @@ GithubVersion.prototype.fetchLatestFile = function(cb){
   var self = this;
   self.fetchLatestFileCached(function(f){
     if(f){
-      console.log("Using cached version");
       self.asset = f;
       cb()
     }else{

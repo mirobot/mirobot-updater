@@ -6,6 +6,8 @@ var Mirobot       = require('mirobot').Mirobot;
 var mirobot       = new Mirobot();
 
 //mirobot.debug = true;
+var Menu = require('menu');
+var MenuItem = require('menu-item');
 
 var versions = {
   arduino: null,
@@ -111,8 +113,21 @@ app.on('ready', function() {
   }
   
   mainWindow.webContents.on('did-finish-load', function() {
-    sendStatus('Checking latest versions');
     var arduinoVersion = new GithubVersion('bjpirt/mirobot-arduino', 'mirobot.hex');
+    var uiVersion = new GithubVersion('bjpirt/mirobot-ui', 'mirobot.bin');
+
+    var initVersions = function(){
+      sendStatus('Checking latest versions');
+      arduinoVersion.init(usePrereleases);
+      uiVersion.init(usePrereleases);
+    }
+
+    var usePrereleases = false;
+    var togglePrerelease = function(){
+      usePrereleases = !usePrereleases;
+      initVersions();
+    }
+
     arduinoVersion.on('ready', function(){
       versions.arduinoLatest = arduinoVersion.version;
       sendReady('arduino')
@@ -120,9 +135,7 @@ app.on('ready', function() {
     arduinoVersion.on('error', function(err){
       sendStatus(err.msg);
     });
-    arduinoVersion.init();
   
-    var uiVersion = new GithubVersion('bjpirt/mirobot-ui', 'mirobot.bin');
     uiVersion.on('ready', function(){
       versions.uiLatest = uiVersion.version;
       sendReady('ui')
@@ -130,7 +143,49 @@ app.on('ready', function() {
     uiVersion.on('error', function(err){
       sendStatus(err.msg);
     });
-    uiVersion.init();
+    initVersions();
+
+    var menuTemplate = [
+      {
+        label: 'Atom Shell',
+        submenu: [
+          {label: 'About Mirobot Updater', selector: 'orderFrontStandardAboutPanel:'},
+          {type: 'separator'},
+          {label: 'Services',submenu: []},
+          {type: 'separator'},
+          {label: 'Hide Atom Shell', accelerator: 'Command+H', selector: 'hide:'},
+          {label: 'Hide Others', accelerator: 'Command+Shift+H', selector: 'hideOtherApplications:'},
+          {label: 'Show All', selector: 'unhideAllApplications:'},
+          {type: 'separator'},
+          {label: 'Use prereleases', accelerator: 'Command+R', type: 'checkbox', click: function() { togglePrerelease(); }},
+          {type: 'separator'},
+          {label: 'Quit', accelerator: 'Command+Q', click: function() { app.quit(); }},
+        ]
+      },
+      {
+        label: 'Edit',
+        submenu: [
+          {label: 'Undo', accelerator: 'Command+Z', selector: 'undo:'},
+          {label: 'Redo', accelerator: 'Shift+Command+Z', selector: 'redo:'},
+          {type: 'separator'},
+          {label: 'Cut', accelerator: 'Command+X', selector: 'cut:'},
+          {label: 'Copy', accelerator: 'Command+C', selector: 'copy:'},
+          {label: 'Paste', accelerator: 'Command+V', selector: 'paste:'},
+          {label: 'Select All', accelerator: 'Command+A', selector: 'selectAll:'},
+        ]
+      },
+      {
+        label: 'Window',
+        submenu: [
+          {label: 'Minimize', accelerator: 'Command+M', selector: 'performMiniaturize:'},
+          {label: 'Close', accelerator: 'Command+W', selector: 'performClose:'},
+          {type: 'separator'},
+          {label: 'Bring All to Front', selector: 'arrangeInFront:'},
+        ]
+      },
+    ];
+    var menu = Menu.buildFromTemplate(menuTemplate);
+    Menu.setApplicationMenu(menu);
     
     ipc.on('connect', function(event, ip) {
       mirobot.connect(ip);
