@@ -36,6 +36,13 @@
     #versions{
       width:100%;
     }
+    .arduino{
+      font-size:80%;
+      margin-top:5px;
+    }
+    .arduino a{
+      color:#666;
+    }
   </style>
   </head>
   <body>
@@ -47,9 +54,10 @@
     <p id="message"></p>
     <p>Mirobot IP address: <input id="ip" type="text" value="10.10.100.254" /> <button class="connect" disabled="disabled">Connect</button></p>
     <table id="versions">
-    <tr><td>Arduino Version:</td><td id="arduinoVersion"> </td><td><button class="updateArduino" disabled="true">Update</button></td></tr>
     <tr><td>UI Version:</td><td id="uiVersion"> </td><td><button class="updateUI" disabled="true">Update</button></td></tr>
+    <tr><td>Arduino Version:</td><td id="arduinoVersion"> </td><td></td></tr>
     </table>
+    <p class="arduino">For details on updating the Arduino firmware, please see <a href="http://learn.mirobot.io/docs/customise-firmware/" target="_blank">the instructions</a></p>
   </body>
   <script>
     var ipc = require('ipc');
@@ -60,14 +68,14 @@
       document.getElementById('uiVersion').innerHTML = (versions.ui ? versions.ui : 'Unknown');
       if(versions.arduino && versions.arduinoLatest){
         document.getElementById('arduinoVersion').className = (versions.arduino >= versions.arduinoLatest ? 'good' : 'bad');
-        document.querySelector('button.updateArduino').disabled = (versions.arduino >= versions.arduinoLatest);
       }
       if(versions.ui && versions.uiLatest){
         if(versions.ui === 'unknown'){
           document.querySelector('button.updateUI').disabled = false;
         }else{
           document.getElementById('uiVersion').className = (versions.ui >= versions.uiLatest ? 'good' : 'bad');
-          document.querySelector('button.updateUI').disabled = (versions.ui >= versions.uiLatest);
+          document.querySelector('button.updateUI').innerHTML = (versions.ui >= versions.uiLatest ? 'Force Update' : 'Update');
+          document.querySelector('button.updateUI').disabled = false;
         }
       }
     }
@@ -104,40 +112,16 @@
         document.querySelector('#header .prerelease').style.visibility = 'hidden';
       }
     });
-
-    ipc.on('updateArduino', function(msg){
-      msg = JSON.parse(msg);
-      if(msg.state === 'starting'){
-        document.querySelector('button.updateArduino').disabled = true;
-        setMessage('Updating Arduino');
-      }else if(msg.state === 'progress'){
-        setMessage('Updating Arduino: ' + msg.amount + '%');
-      }else if(msg.state === 'success'){
-        setMessage('Arduino successfully updated');
-      }else if(msg.state === 'resetbutton'){
-        setMessage('Press the reset button now');
-      }else if(msg.state === 'error'){
-        document.querySelector('button.updateArduino').disabled = false;
-        setMessage('Error updating Arduino');
-      }else if(msg.state === 'connecterror'){
-        document.querySelector('button.updateArduino').disabled = false;
-        setMessage('Error connecting to Arduino');
-      }
-    });
     
     document.querySelector('button.connect').addEventListener('click', function(){
       setMessage("Connecting to Mirobot");
       ipc.send('connect', document.getElementById('ip').value);
     });
     
-    document.querySelector('button.updateArduino').addEventListener('click', function(){
-      if(window.confirm("WARNING: Updating the arduino over WiFi carries the risk of breaking Mirobot. You may need to buy a USB to Serial converter if it does not work. Press OK to update the firmware or cancel to abort")){
-        ipc.send('updateArduino');
-      }
-    });
-    
     document.querySelector('button.updateUI').addEventListener('click', function(){
       ipc.send('updateUI');
+      document.querySelector('button.updateUI').innerHTML = 'Updating';
+      document.querySelector('button.updateUI').disabled = false;
     });
     
     updateVersions();

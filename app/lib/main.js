@@ -4,8 +4,9 @@ var ipc           = require('ipc');
 var GithubVersion = require('./githubVersion.js').GithubVersion;
 var Mirobot       = require('mirobot').Mirobot;
 var mirobot       = new Mirobot();
+var url           = require('url');
 
-//mirobot.debug = true;
+mirobot.debug = true;
 var Menu = require('menu');
 var MenuItem = require('menu-item');
 
@@ -117,8 +118,8 @@ app.on('ready', function() {
   }
   
   mainWindow.webContents.on('did-finish-load', function() {
-    var arduinoVersion = new GithubVersion('bjpirt/mirobot-arduino', 'mirobot.hex');
-    var uiVersion = new GithubVersion('bjpirt/mirobot-ui', 'mirobot.bin');
+    var arduinoVersion = new GithubVersion('mirobot/mirobot-arduino', 'mirobot.hex');
+    var uiVersion = new GithubVersion('mirobot/mirobot-ui', 'mirobot.bin');
 
     var initVersions = function(){
       sendStatus('Checking latest versions');
@@ -194,24 +195,6 @@ app.on('ready', function() {
     
     ipc.on('connect', function(event, ip) {
       mirobot.connect(ip);
-    });
-    
-    ipc.on('updateArduino', function(){
-      if(arduinoError){
-        mainWindow.webContents.send('updateArduino', JSON.stringify({state: 'resetbutton'}));
-      }else{
-        mainWindow.webContents.send('updateArduino', JSON.stringify({state: 'starting'}));
-      }
-      var proc = arduinoError ? '_updateFirmware' : 'updateFirmware';
-      mirobot[proc](arduinoVersion.asset, function(succ){
-        if(succ){
-          mainWindow.webContents.send('updateArduino', JSON.stringify({state: 'success'}));
-          setTimeout(fetchVersions, 2000);
-        }else{
-          mainWindow.webContents.send('updateArduino', JSON.stringify({state: 'error'}));
-        }
-        mirobot.close();
-      });
     });
     
     ipc.on('updateUI', function(){
