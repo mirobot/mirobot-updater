@@ -36,10 +36,13 @@ GithubVersion.prototype.fetchLatestRelease = function(cb){
       var res = JSON.parse(body);
       for(var i=0; i< res.length; i++){
         if(self.usePrereleases || !res[i].prerelease){
-          self.latest = JSON.parse(body)[i];
-          self.version = self.latest.tag_name;
-          cb();
-          break;
+          var assets = res[i].assets.map(function(e){ return e.name; });
+          if(assets.indexOf(self.file) >= 0){
+            self.latest = res[i];
+            self.version = self.latest.tag_name;
+            cb();
+            break;
+          }
         }
       }
     }else{
